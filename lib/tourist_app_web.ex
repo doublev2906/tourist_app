@@ -19,6 +19,16 @@ defmodule TouristAppWeb do
 
   def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
 
+  def model do
+    quote do
+      use Ecto.Schema
+
+      import Ecto
+      import Ecto.Changeset
+      import Ecto.Query, only: [from: 1, from: 2]
+    end
+  end
+
   def router do
     quote do
       use Phoenix.Router, helpers: false

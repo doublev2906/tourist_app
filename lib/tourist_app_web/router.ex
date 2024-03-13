@@ -6,7 +6,7 @@ defmodule TouristAppWeb.Router do
     plug :fetch_session
     plug :fetch_live_flash
     plug :put_root_layout, html: {TouristAppWeb.Layouts, :root}
-    plug :protect_from_forgery
+    # plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
 
@@ -18,6 +18,11 @@ defmodule TouristAppWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    scope "/user" do
+      post "/login", UserController, :login
+      post "/sign_up", UserController, :sign_up
+    end
   end
 
   # Other scopes may use custom stacks.
