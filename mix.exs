@@ -39,7 +39,7 @@ defmodule TouristApp.MixProject do
       {:phoenix_html, "~> 4.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 0.20.2"},
-      {:floki, ">= 0.30.0", only: :test},
+      {:floki, "~> 0.36.0"},
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
@@ -61,7 +61,8 @@ defmodule TouristApp.MixProject do
       {:guardian, "~> 2.3.2"},
       {:cowboy, "~> 2.11.0"},
       {:plug, "~> 1.15.3" },
-      {:httpoison, "~> 2.2"}
+      {:httpoison, "~> 2.2"},
+      {:poison, "~> 5.0"},
     ]
   end
 

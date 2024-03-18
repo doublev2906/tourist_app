@@ -1,11 +1,17 @@
 defmodule TouristApp.Tools do
   
-  def http_get(url, err_msg \\ "Không thể thực hiện GET", timeout \\ 10000, headers \\ [], data \\ %{}) do
+  def http_get(url, err_msg \\ "Không thể thực hiện GET", timeout \\ 60000, headers \\ [], data \\ %{}) do
     # url = if length(Map.keys(data)) > 0, do: "#{url}?#{encode_data(data)}", else: url
     # url = if String.contains?(url, "graph.facebook.com") && !String.contains?(url, "oauth"), do: spider_wrap_url(url), else: url
     # headers = if String.contains?(url, "graph.facebook.com"), do: headers ++ [{"Accept-Encoding", "gzip"}], else: headers
     # handle_http_response(HTTPoison.get(url, headers, [recv_timeout: timeout, hackney: [cookie: ["c_user=10"]]]), url, err_msg)
     handle_http_response(HTTPoison.get(url, headers, [recv_timeout: timeout]), url, err_msg)
+  end
+
+    def http_post(url, data, headers \\ [], err_msg \\ "Không thể thực hiện POST") do
+    opts = [recv_timeout: 45000]
+    # opts = if hackney_opts != [], do: opts ++ [hackney: hackney_opts], else: opts
+    handle_http_response(HTTPoison.post(url, data, headers, opts), url, err_msg)
   end
 
 
@@ -55,15 +61,6 @@ defmodule TouristApp.Tools do
           "success" => false,
           "message" => reason || err_msg
         }
-        # if count < 10 do
-        #   :timer.sleep(10000)
-        #   handle_http_response(response, url, err_msg, count + 1)
-        # else
-        #   %{
-        #     "success" => false,
-        #     "message" => reason || err_msg
-        #   }
-        # end
     end
   end
 
