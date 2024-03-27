@@ -23,6 +23,14 @@ defmodule TouristAppWeb.Router do
       post "/login", UserController, :login
       post "/sign_up", UserController, :sign_up
     end
+
+    scope "/home" do
+      get "/", HomeController, :index
+    end
+
+    scope "/city" do
+      get "/get_hot_place", CityController, :get_host_place
+    end
   end
 
   # Other scopes may use custom stacks.

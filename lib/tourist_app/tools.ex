@@ -1,10 +1,32 @@
 defmodule TouristApp.Tools do
+
+  @earth_radius_km 6371000.0
+
+
+  def haversine_distance(%{"latitude" => lat1, "longitude" => lon1}, %{"latitude" => lat2, "longitude" => lon2}) do
+    d_lat = deg2rad(lat2 - lat1)
+    d_lon = deg2rad(lon2 - lon1)
+
+    a = Math.sin(d_lat / 2) * Math.sin(d_lat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(d_lon / 2) * Math.sin(d_lon / 2)
+
+    c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+    @earth_radius_km * c
+  end
+
+  defp deg2rad(degrees) do
+    degrees * Math.pi / 180
+  end
   
   def http_get(url, err_msg \\ "Không thể thực hiện GET", timeout \\ 60000, headers \\ [], data \\ %{}) do
     # url = if length(Map.keys(data)) > 0, do: "#{url}?#{encode_data(data)}", else: url
     # url = if String.contains?(url, "graph.facebook.com") && !String.contains?(url, "oauth"), do: spider_wrap_url(url), else: url
     # headers = if String.contains?(url, "graph.facebook.com"), do: headers ++ [{"Accept-Encoding", "gzip"}], else: headers
     # handle_http_response(HTTPoison.get(url, headers, [recv_timeout: timeout, hackney: [cookie: ["c_user=10"]]]), url, err_msg)
+    IO.inspect(url)
+    IO.inspect(headers)
     handle_http_response(HTTPoison.get(url, headers, [recv_timeout: timeout]), url, err_msg)
   end
 

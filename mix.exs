@@ -63,6 +63,7 @@ defmodule TouristApp.MixProject do
       {:plug, "~> 1.15.3" },
       {:httpoison, "~> 2.2"},
       {:poison, "~> 5.0"},
+      {:math, "~> 0.7.0"}
     ]
   end
 

@@ -1,6 +1,10 @@
 defmodule TouristApp.Hotel do
   use Ecto.Schema
 
+  alias TouristApp.{Repo}
+
+  import Ecto.Query
+
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "hotels" do
     field :hotel_id, :string, primary_key: true
@@ -39,7 +43,6 @@ defmodule TouristApp.Hotel do
   end
 
   def parse_float(value) do
-    IO.inspect(value)
     c_value = "#{value}"
     {num, _} = Float.parse c_value
     num
@@ -76,5 +79,23 @@ defmodule TouristApp.Hotel do
       physic_room_map: %{},
       extra_info: %{}
     }
+  end
+
+  def get_hotel_by_city_id(city_id, opts \\ []) do
+    offset = Keyword.get(opts, :offset, 0)
+    limit = Keyword.get(opts, :limit, 10)
+
+    a = from(
+      h in __MODULE__,
+      where: fragment("?->>'cityId' = ?", h.position_info, ^"#{city_id}"),
+      order_by: [desc: h.hotel_star_info],
+      distinct: h.hotel_id,
+      offset: ^offset,
+      limit: ^limit,
+      select: h
+    ) 
+    |> Repo.all()
+    |> Enum.map(&(Map.take(&1, [:hotel_id, :hotel_name, :hotel_star_info, :position_info, :extra_info, :hotel_img, :hotel_address, :price])))
+    
   end
 end

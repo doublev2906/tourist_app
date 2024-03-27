@@ -462,7 +462,7 @@ defmodule Manage do
         }
       } ->
         Enum.map(results, fn item ->
-          restaurant = Restaurant.from_json(item)
+          restaurant = Restaurant.from_json(item) |> Map.put(:city_id, id)
           struct(Restaurant, restaurant)
           |> Repo.insert!
         end)
@@ -470,6 +470,64 @@ defmodule Manage do
     end
 
     if idx <= 5, do: get_restaurant_by_city_id(id, idx + 1)
+    
+  end
+
+  def insert_all_city_location() do
+    from(
+      c in CityInfo,
+      select: c
+    )
+    |> Repo.all()
+    |> Enum.map(&(insert_city_location(&1)))
+  end
+
+  def insert_city_location(city) do
+    data = %{
+      "head" => %{
+        "extension" => [
+          %{"name" => "platform", "value" => "Online"},
+          %{"name" => "locale", "value" => "vi-VN"},
+          %{"name" => "currency", "value" => "VND"}
+        ],
+        "cid" => "1710425553277.8a25M5Eprc2q"
+      },
+      "scene" => "gsDestination",
+      "districtId" => city.id,
+      "index" => 1,
+      "count" => 1,
+      "sortType" => 1,
+      "returnModuleType" => "product",
+      "filter" => %{
+        "filterItems" => [],
+        "coordinateFilter" => %{
+          "coordinateType" => "wgs84",
+          "latitude" => 0,
+          "longitude" => 0
+        },
+        "itemType" => ""
+      },
+      "token" => "LDk4NzM4LDMyODYyMTQ4LDkwNjA1LDIwOTA1NjU2LDEzMzgyODAwOCwzODYyMjA4MSwyODM3ODIzNSwzODUzNDg0MiwxMzAzNjk0NjQsMTM2MjA5Njg3",
+      "keyword" => nil,
+      "cityId" => 0,
+      "pageId" => "10650006153"
+    }
+
+    url = "https://vn.trip.com/restapi/soa2/19913/getTripAttractionList?x-traceID=1710425553277.8a25M5Eprc2q-1710434594684-1797999696"
+    Tools.http_post(url, Poison.encode!(data), @default_header)
+    |> case do
+       %{
+         "success" => true,
+         "response" => %{
+           "districtInfo" => %{"coordinate" => coordinate}
+         }
+       } ->
+        city
+        |> Ecto.Changeset.change(%{coordinates: coordinate})
+        |> Repo.update!
+        res -> IO.inspect(res)
+        
+    end
     
   end
 

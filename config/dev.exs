@@ -19,10 +19,11 @@ config :tourist_app, TouristApp.Repo,
 config :tourist_app, TouristAppWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  # http: [port: 4000],
+  http: [port: 4000],
   https: [
     port: 4001,
     # cipher_suite: :strong,
+    otp_app: :tourist_app, 
     certfile: "priv/cert/server.key",
     keyfile: "priv/cert/server.crt"
   ],

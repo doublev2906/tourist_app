@@ -1,5 +1,10 @@
 defmodule TouristApp.Destination do
+
+  alias TouristApp.{Repo, CityInfo}
+
   use Ecto.Schema
+
+  import Ecto.Query
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "destinations" do
@@ -19,4 +24,22 @@ defmodule TouristApp.Destination do
 
     timestamps()
   end
+
+  def get_destination_by_city_id(city_id) do
+    offset = 0
+    limit = 10
+
+    from(
+      d in __MODULE__,
+      where: d.city_id == ^city_id,
+      offset: ^offset,
+      limit: ^limit,
+      order_by: [desc: d.hot_score],
+      select: d
+    ) 
+    |> Repo.all()
+    |> Enum.map(&Map.take(&1, [:destination_id, :name, :subtitle_name, :hot_score, :cover_image_url, :city_id, :distance_str]))
+  end
+
+  def get_near_by_destinations(nil), do: []
 end

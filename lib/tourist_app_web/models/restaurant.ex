@@ -1,6 +1,10 @@
 defmodule TouristApp.Restaurant do
   use Ecto.Schema
+
+  alias TouristApp.{Repo}
   import Ecto.Changeset
+
+  import Ecto.Query
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "restaurants" do
@@ -16,6 +20,7 @@ defmodule TouristApp.Restaurant do
     field :review_count, :integer
     field :distance_from_center, :float
     field :extra_info, :map
+    field :city_id, :string
 
     timestamps()
   end
@@ -47,5 +52,21 @@ defmodule TouristApp.Restaurant do
         have_book: json["haveBook"]
       }
     }
+  end
+
+  def get_restaurant_by_city_id(city_id) do
+    offset = 0
+    limit = 10
+
+    from(
+      d in __MODULE__,
+      where: d.city_id == ^city_id,
+      offset: ^offset,
+      limit: ^limit,
+      order_by: [desc: d.rating],
+      select: d
+    ) 
+    |> Repo.all()
+    |> Enum.map(&Map.take(&1, [:restaurant_id, :id, :name, :rating, :cover_image_url, :city_id, :distance_from_center]))
   end
 end
