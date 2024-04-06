@@ -25,9 +25,9 @@ defmodule TouristApp.Destination do
     timestamps()
   end
 
-  def get_destination_by_city_id(city_id) do
-    offset = 0
-    limit = 10
+  def get_destination_by_city_id(city_id, opts \\ []) do
+    offset = opts[:offset] || 0
+    limit = opts[:limit] || 10
 
     from(
       d in __MODULE__,
@@ -38,7 +38,7 @@ defmodule TouristApp.Destination do
       select: d
     ) 
     |> Repo.all()
-    |> Enum.map(&Map.take(&1, [:destination_id, :name, :subtitle_name, :hot_score, :cover_image_url, :city_id, :distance_str]))
+    |> Enum.map(&Map.take(&1, [:id, :destination_id, :name, :subtitle_name, :hot_score, :cover_image_url, :city_id, :distance_str]))
   end
 
   def get_near_by_destinations(nil), do: []

@@ -200,7 +200,29 @@ defmodule TouristApp.KlookApi do
     ]
 
     Tools.http_get(url, headers)
-    
+    |> case do
+       %{
+        "success" => true,
+        "response" => %{
+          "success" => true,
+          "result" => result
+        }
+       } ->
+        categories = result["frontend_tree_mapping"]
+        activities = 
+          result["activities"]
+          |> Enum.map(fn activity ->
+            city_id = activity["city_id"]
+            city = Enum.find(@city, fn c -> c.id == city_id end)
+            
+            if city, do: Map.put(activity, "trip_id", city.trip_id), else: activity
+          end)
+        %{
+          categories: categories,
+          activities: activities
+        }
+      _ -> :error
+    end    
   end
 end
 

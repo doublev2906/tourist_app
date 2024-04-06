@@ -117,20 +117,11 @@ defmodule Manage do
           "hotDistrictItemList" => item_list
         }
       } when is_list(item_list) ->
-        Enum.with_index(item_list) 
-        |> Enum.map(fn {item, index} -> 
-          index_sort = (idx - 1) * page_size + index
-          Repo.transaction(fn -> 
-            city_info = %{
-              id: to_string(item["districtId"]),
-              name: item["name"],
-              e_name: item["eName"],
-              image_url: item["imageUrl"],
-              index_sort: index_sort
-            }
-            struct(CityInfo, city_info)
-            |> Repo.insert!
-          end)
+        Enum.map(item_list, fn item ->
+          id = item["districtId"]
+          Repo.get_by(CityInfo, %{id: to_string(id)})
+          |> Ecto.Changeset.change(%{extra_info: %{"jump_url" => item["jumpUrl"]}})
+          |> Repo.update!
         end)
       res ->
         IO.inspect(res) 

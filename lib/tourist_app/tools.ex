@@ -20,7 +20,7 @@ defmodule TouristApp.Tools do
     degrees * Math.pi / 180
   end
   
-  def http_get(url, err_msg \\ "Không thể thực hiện GET", timeout \\ 60000, headers \\ [], data \\ %{}) do
+  def http_get(url, headers \\ [], err_msg \\ "Không thể thực hiện GET", timeout \\ 60000, data \\ %{}) do
     # url = if length(Map.keys(data)) > 0, do: "#{url}?#{encode_data(data)}", else: url
     # url = if String.contains?(url, "graph.facebook.com") && !String.contains?(url, "oauth"), do: spider_wrap_url(url), else: url
     # headers = if String.contains?(url, "graph.facebook.com"), do: headers ++ [{"Accept-Encoding", "gzip"}], else: headers

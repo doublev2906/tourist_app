@@ -26,10 +26,13 @@ defmodule TouristAppWeb.Router do
 
     scope "/home" do
       get "/", HomeController, :index
+      get "/activities", HomeController, :get_activities
+      get "/destinations", HomeController, :get_destinations
     end
 
     scope "/city" do
       get "/get_hot_place", CityController, :get_host_place
+      get "/:city_id", CityController, :get_city_detail
     end
   end
 

@@ -95,7 +95,7 @@ defmodule TouristApp.Hotel do
       select: h
     ) 
     |> Repo.all()
-    |> Enum.map(&(Map.take(&1, [:hotel_id, :hotel_name, :hotel_star_info, :position_info, :extra_info, :hotel_img, :hotel_address, :price])))
+    |> Enum.map(&(Map.take(&1, [:hotel_id, :hotel_name, :hotel_star_info, :position_info, :extra_info, :hotel_img, :hotel_address, :price, :comment_info])))
     
   end
 end

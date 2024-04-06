@@ -67,6 +67,6 @@ defmodule TouristApp.Restaurant do
       select: d
     ) 
     |> Repo.all()
-    |> Enum.map(&Map.take(&1, [:restaurant_id, :id, :name, :rating, :cover_image_url, :city_id, :distance_from_center]))
+    |> Enum.map(&Map.take(&1, [:restaurant_id, :id, :name, :rating, :cover_image_url, :city_id, :distance_from_center, :extra_info]))
   end
 end
