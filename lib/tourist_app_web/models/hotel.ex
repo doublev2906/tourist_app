@@ -30,6 +30,7 @@ defmodule TouristApp.Hotel do
     field :position_info, :map
     field :physic_room_map, :map
     field :extra_info, :map
+    field :city_id, :string
 
     timestamps()
   end

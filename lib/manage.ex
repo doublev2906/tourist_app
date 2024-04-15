@@ -1,6 +1,6 @@
 defmodule Manage do
   
-  alias TouristApp.{Tools, Repo, Place, CityInfo, Destination, Hotel, Restaurant}
+  alias TouristApp.{Tools, Repo, Place, CityInfo, Destination, Hotel, Restaurant, Moment, Review, TripApi}
 
   import Ecto.Query
 
@@ -143,7 +143,7 @@ defmodule Manage do
   def get_all_hotels do
     from(
       c in CityInfo,
-      select: c.city_id
+      select: %{"id" => c.id, "city_id" => c.city_id}
     )
     |> Repo.all()
     |> Enum.map(fn id -> get_hotel_by_city_id(id) end)
@@ -191,11 +191,12 @@ defmodule Manage do
        } ->
         Enum.map(attraction_list, fn %{"showType" => type, "card" => data} -> 
           Repo.transaction(fn -> 
-            destination = map_to_destination(data, id, type)
-          IO.inspect(destination)
-
-            struct(Destination, destination)
-            |> Repo.insert!
+            destination = Repo.get_by(Destination, %{destination_id: to_string(data["poiId"]), city_id: id})
+            if destination do
+              extra_info = Map.put(destination.extra_info, "detail_url", data["detailUrl"])
+              Ecto.Changeset.change(destination, %{extra_info: extra_info})
+              |> Repo.update!
+            end
           end)
         end)
         
@@ -205,15 +206,15 @@ defmodule Manage do
     
   end
 
-  def get_hotel_by_city_id(id, idx \\ 1) do
+  def get_hotel_by_city_id(%{"id" => id, "city_id" => city_id}, idx \\ 1) do
     data = %{
       guideLogin: "T",
       search: %{
         sessionId: "553cbe35-14dc-292f-9e78-f579071d4b6f",
         preHotelCount: 0,
         preHotelIds: [],
-        checkIn: "20240317",
-        checkOut: "20240318",
+        checkIn: "20240417",
+        checkOut: "20240418",
         sourceFromTag: "",
         filters: [
           %{filterId: "17|1", value: "1", type: "17", subType: "2", sceneType: "17"},
@@ -270,9 +271,9 @@ defmodule Manage do
         clientVersion: "0",
         frontend: %{vid: "1710425553277.8a25M5Eprc2q", sessionID: "8", pvid: "1"},
         extension: [
-          %{name: "cityId", value: id},
-          %{name: "checkIn", value: "2024/03/17"},
-          %{name: "checkOut", value: "2024/03/18"}
+          %{name: "cityId", value: city_id},
+          %{name: "checkIn", value: "2024/04/17"},
+          %{name: "checkOut", value: "2024/04/18"}
         ],
         tripSub1: "",
         qid: 880118040242,
@@ -289,6 +290,7 @@ defmodule Manage do
     url = "https://vn.trip.com/htls/getHotelList?testab=24f79d17d972b5bd8d9ff4b66bde68373f3a63da2fd97622a8a8af6145862d53&x-traceID=1710425553277.8a25M5Eprc2q-1710664585295-1974924300"
 
     Tools.http_post(url, Poison.encode!(data), @default_header)
+    |> IO.inspect()
     |> case do
        %{
          "success" => true,
@@ -304,7 +306,21 @@ defmodule Manage do
       res -> IO.inspect(res)
     end
 
-    if idx <= 5, do: get_hotel_by_city_id(id, idx + 1)
+    if idx <= 5, do: get_hotel_by_city_id(%{"id" => id, "city_id" => city_id}, idx + 1)
+    
+  end
+
+  def map_city_hotels() do
+
+    from(
+      h in Hotel,
+      select: h
+    )
+    |> Repo.all()
+    |> Enum.map(fn h -> 
+      cityId = h.position_info["cityId"]
+      Repo.update!(Ecto.Changeset.change(h, %{city_id: to_string(cityId)}))
+    end)
     
   end
 
@@ -520,6 +536,123 @@ defmodule Manage do
         
     end
     
+  end
+
+  def get_all_moment() do
+    from(
+      d in Destination,
+      distinct: d.destination_id,
+      select: d.destination_id 
+    )
+    |> Repo.all()
+    |> Enum.map(fn id -> insert_moment(id) end)
+    
+  end
+
+  def insert_moment(destination_id) do
+
+    data = %{
+      "bizType" => "poiList",
+      "head" => %{
+        "cver" => "1.0",
+        "cid" => "09031079411944261985",
+        "currency" => "VND",
+        "extension" => [
+          %{"name" => "locale", "value" => "vi-VN"},
+          %{"name" => "platform", "value" => "Online"},
+          %{"name" => "currency", "value" => "VND"},
+          %{"name" => "clientIp", "value" => "113.22.47.176"}
+        ],
+        "locale" => "vi-VN"
+      },
+      "locale" => "vi-VN",
+      "pageNo" => 1,
+      "pageSize" => 5,
+      "poiIdList" => [destination_id],
+      "source" => "online_list"
+    }
+
+    url = "https://vn.trip.com/restapi/soa2/18066/searchMomentList"
+    Tools.http_post(url, Poison.encode!(data), @default_header)
+    |> case do
+      %{
+        "success" => true,
+        "response" => %{
+          "momentList" => momentList
+        }
+      } ->
+        Enum.map(momentList, &(Moment.map_json(&1, destination_id)))
+      res -> IO.inspect(res)
+    end    
+    
+  end
+
+  def get_reviews_of_hanoi() do
+    from(
+      d in Destination,
+      where: d.city_id == ^"181",
+      distinct: d.destination_id,
+      select: d
+    )
+    |> Repo.all()
+    |> Enum.map(&(insert_open_time(&1)))
+  end
+
+  def insert_open_time(destination) do
+    extra_info = destination.extra_info 
+    if extra_info["detail_url"] do
+      %{open_time: open_time, overview_data: overview_data} = TripApi.get_destination_detail(extra_info["detail_url"])
+      extra_info = Map.put(extra_info, "open_time", open_time) |> Map.put("overview_data", overview_data)
+      Repo.update!(Ecto.Changeset.change(destination, %{extra_info: extra_info}))
+    end  
+  end
+
+  def insert_hanoi_review(destination_id) do
+    data = %{
+      "poiId" => destination_id,
+      "locale" => "vi-VN",
+      "pageSize" => 8,
+      "pageIndex" => 1,
+      "commentTagId" => 0,
+      "head" => %{
+        "locale" => "vi-VN",
+        "cver" => "3.0",
+        "cid" => "1710425553277.8a25M5Eprc2q",
+        "sid" => "",
+        "extension" => [
+          %{"name" => "locale", "value" => "vi-VN"},
+          %{"name" => "platform", "value" => "Online"},
+          %{"name" => "currency", "value" => "USD"},
+          %{"name" => "aid", "value" => ""}
+        ]
+      }
+    }
+
+    url = "https://vn.trip.com/restapi/soa2/19707/getReviewSearch"
+
+    Tools.http_post(url, Poison.encode!(data), @default_header)
+    |> case do
+      %{
+        "success" => true,
+        "response" => %{
+          "reviewList" => review_list
+        }
+      } -> 
+        Enum.map(review_list, fn review -> 
+          data = %{
+            place_id: destination_id,
+            user_id: "f8a02f32-516f-459b-9c76-c7e255a45b4d",
+            content: review["content"],
+            rating: review["userRating"],
+            type: "destination",
+            images: review["reviewImages"]
+          }
+          struct(Review, data)
+          |> Repo.insert!
+        end)
+      res -> 
+        IO.inspect(res)
+      end
   end
 
 

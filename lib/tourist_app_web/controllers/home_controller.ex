@@ -1,18 +1,16 @@
 defmodule TouristAppWeb.HomeController do
   use TouristAppWeb, :controller
 
-  alias TouristApp.{Repo, Destination, CityInfo, Hotel, Restaurant, KlookApi}
+  alias TouristApp.{Repo, Destination, CityInfo, Hotel, Restaurant, KlookApi, TripApi}
 
   import Ecto.Query
 
 
   def index(conn, params) do
-    city = CityInfo.get_city_by_coordinate(params)
-    destinations = Destination.get_destination_by_city_id(city.id)
-    hotels = Hotel.get_hotel_by_city_id(city.city_id)
-    restaurants = Restaurant.get_restaurant_by_city_id(city.id)
+
+    data = TripApi.get_destination_detail("https://vn.trip.com/travel-guide/attraction/hanoi/hoan-kiem-lake-78921/") 
     
-    json conn, %{success: true, destinations: destinations, hotels: hotels, restaurants: restaurants}
+    json conn, %{success: true, data: data}
   end
 
   def get_destinations(conn, params) do
@@ -21,7 +19,7 @@ defmodule TouristAppWeb.HomeController do
     limit = params["limit"] || 10
     destinations = Destination.get_destination_by_city_id(city.id, offset: offset, limit: limit)
 
-    json conn, %{success: true, destinations: destinations}
+    json conn, %{success: true, city_id: city.id ,destinations: destinations}
   end
 
   def get_activities(conn, params) do

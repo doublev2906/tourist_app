@@ -1,19 +1,33 @@
 defmodule TouristAppWeb.CityController do
   use TouristAppWeb, :controller
 
-  alias TouristApp.{CityInfo, Repo, TripApi, Destination, Hotel, Restaurant, Tools}
+  alias TouristApp.{CityInfo, Repo, TripApi, Destination, Hotel, Restaurant, Tools, Moment}
 
   import Ecto.Query
 
-  def get_host_place(conn, params) do
-    data = from(
+  def get_list_city(conn, params) do
+    offset = params["offset"] || 0
+    limit = params["limit"] || 10
+    search = params["search"]
+
+    query = from(
       c in CityInfo,
       order_by: c.index_sort,
-      limit: 10,
-      offset: 0,
-    ) 
-    |> Repo.all()
-    |> Enum.map(&(Map.take(&1, [:id, :name, :e_name, :image_url, :coordinates, :extra_info])))
+      limit: ^limit,
+      offset: ^offset,
+    )
+    query = if search, 
+      do: 
+        from(
+          c in query, 
+          where: ilike(c.e_name, ^"%#{search}%"),
+          or_where: ilike(c.name, ^"%#{search}%")
+        ), 
+      else: query
+
+    data = query
+      |> Repo.all()
+      |> Enum.map(&(Map.take(&1, [:id, :name, :e_name, :image_url, :coordinates, :extra_info])))
 
     json conn, %{success: true, data: data}
   end
@@ -27,8 +41,9 @@ defmodule TouristAppWeb.CityController do
     hotel = Hotel.get_hotel_by_city_id(city.city_id)
     restaurant = Restaurant.get_restaurant_by_city_id(city_id)
     city_near_by = get_city_near_by(city)
+    moments = Moment.get_moments_by_city_id(city_id)
 
-    json conn, %{success: true, city_info: trip_city_info, destination: destination, hotel: hotel, restaurant: restaurant, city_near_by: city_near_by}
+    json conn, %{success: true, city_info: trip_city_info, destination: destination, hotel: hotel, restaurant: restaurant, city_near_by: city_near_by, moments: moments}
   end
 
   defp get_city_near_by(city) do

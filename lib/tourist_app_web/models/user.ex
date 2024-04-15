@@ -26,9 +26,7 @@ defmodule TouristApp.User do
   def create_user(%{"name" => name, "email" => email, "password" => password, "phone_number" => phone_number}) do
     cond do
       TouristApp.Repo.get_by(__MODULE__, %{email: email}) ->
-        {:error, "Email is exist."}
-      TouristApp.Repo.get_by(__MODULE__, %{phone_number: phone_number}) ->
-        {:error, "Phone number is exist."}
+        {:error, "Email đã tồn tại."}
       true ->
         %__MODULE__{
           name: name,
@@ -41,7 +39,7 @@ defmodule TouristApp.User do
     end
   end
 
-  def create_user(_), do: {:error, "Missing required fields."}
+  def create_user(_), do: {:error, "Thiếu thông tin bắt buộc."}
 
   def verify_user(%{"email" => email, "password" => password}) do
     case TouristApp.Repo.get_by(__MODULE__, %{email: email, password_hash: password}) do
