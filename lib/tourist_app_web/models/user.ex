@@ -58,8 +58,8 @@ defmodule TouristApp.User do
   def verify_user(_), do: {:error, "Tham số không hợp lệ"}
 
   def create_token(user) do
-    {:ok, access_token, access_claims} = TouristApp.Guardian.encode_and_sign(user, %{}, [token_type: "access", ttl: {1, :days}])
-    {:ok, refresh_token, _} = TouristApp.Guardian.encode_and_sign(user, %{access_token: access_token}, [token_type: "refresh", ttl: {4, :days}])
+    {:ok, access_token, access_claims} = TouristApp.Guardian.encode_and_sign(user, %{}, [token_type: "access", ttl: {60, :days}])
+    {:ok, refresh_token, _} = TouristApp.Guardian.encode_and_sign(user, %{access_token: access_token}, [token_type: "refresh", ttl: {90, :days}])
 
     %{access_token: access_token, refresh_token: refresh_token, expired_time: access_claims["exp"]}
   end

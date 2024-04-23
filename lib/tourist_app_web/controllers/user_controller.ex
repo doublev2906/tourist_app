@@ -7,7 +7,7 @@ defmodule TouristAppWeb.UserController do
     User.verify_user(params)
     |> case do
       {:ok, user} ->
-        json conn, Map.merge(%{user_data: user, success: true, message: "Login successfully"}, User.create_token(user))
+        json conn, %{user_data: Map.merge(user, User.create_token(user)), success: true, message: "Sign in successfully"}
       {:error, message} ->
         json conn, %{success: false, message: message}
     end
@@ -18,7 +18,7 @@ defmodule TouristAppWeb.UserController do
     User.create_user(params)
     |> case do
       {:error, message} -> json conn, %{success: false, message: message}
-      user -> json conn, Map.merge(%{user_data: user, success: true, message: "Sign up successfully"}, User.create_token(user))
+      user -> json conn, %{user_data: Map.merge(user, User.create_token(user)), success: true, message: "Sign up successfully"}
     end
   end
 end

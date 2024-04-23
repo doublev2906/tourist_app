@@ -35,6 +35,15 @@ defmodule TouristAppWeb.Router do
       get "/:city_id", CityController, :get_city_detail
     end
 
+    scope "/trips" do
+      get "/", TripController, :index
+      post "/create", TripController, :create
+      scope "/:id" do
+        get "/", TripController, :show
+        post "/update", TripController, :update
+      end
+    end
+
     scope "/destination" do
       scope "/detail" do
         get "/:id", DestinationController, :index

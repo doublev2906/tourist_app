@@ -2,6 +2,20 @@ defmodule TouristApp.Tools do
 
   @earth_radius_km 6371000.0
 
+  def schema_to_map(obj) do
+    schema = obj.__struct__
+    fields = schema.__schema__(:fields)
+    Map.take(obj, fields)
+  end
+
+  def to_atom_keys_map(%DateTime{} = datetime), do: datetime
+  def to_atom_keys_map(%NaiveDateTime{} = datetime), do: datetime
+  def to_atom_keys_map(string_map) when is_map(string_map), do: for {k, v} <- string_map, into: %{}, do: { (if is_atom(k), do: k, else: String.to_atom(k)), to_atom_keys_map(v)}
+  def to_atom_keys_map(list) when is_list(list), do: Enum.map(list, fn elem -> to_atom_keys_map(elem)  end)
+  def to_atom_keys_map(not_is_map), do: not_is_map
+  def to_atom_keys_map(string_map, true), do: for {k, v} <- string_map, into: %{}, do: { (if is_atom(k), do: k, else: String.to_atom(k)), v}
+  def to_atom_keys_map(string_map, false), do: to_atom_keys_map(string_map)
+
 
   def haversine_distance(%{"latitude" => lat1, "longitude" => lon1}, %{"latitude" => lat2, "longitude" => lon2}) do
     d_lat = deg2rad(lat2 - lat1)

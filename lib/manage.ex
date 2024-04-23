@@ -21,8 +21,126 @@ defmodule Manage do
   ]
   
   def test do
-    Repo.get_by(Destination, %{id: "00029019-6b00-4501-89b7-04719f10bd89"})
-    |> Ecto.Changeset.change(%{extra_info: %{tes: "sss"}})
+    city_id = "181"
+    a = [
+      "Địa Điểm Tôn Giáo",
+      "Công Viên",
+      "Kiến Trúc & Danh Thắng",
+      "Thiên Nhiên",
+      "Di Tích Lịch Sử"
+    ]
+    
+    categories = [
+      %{
+        "children" => [
+          %{"id" => "1-1", "name" => "Đền chùa"},
+          %{"id" => "1-2", "name" => "Nhà thờ & thánh đường"},
+          %{"id" => "1-3", "name" => "Điểm thờ phụng khác"},
+          %{"id" => "1-4", "name" => "Đền thờ/miếu"},
+          %{"id" => "1-5", "name" => "Đạo quán"},
+          %{"id" => "1-6", "name" => "Nhà tưởng niệm"},
+          %{"id" => "1-7", "name" => "Chùa cổ"}
+        ],
+        "id" => "1",
+        "name" => "Địa Điểm Tôn Giáo"
+      },
+      %{
+        "children" => [
+          %{"id" => "2-1", "name" => "Công viên giải trí"},
+          %{"id" => "2-2", "name" => "Công viên chủ đề"},
+          %{"id" => "2-3", "name" => "Công viên thành phố"},
+          %{"id" => "2-4", "name" => "Công viên nước"},
+          %{"id" => "2-5", "name" => "Công viên quốc gia"},
+          %{"id" => "2-6", "name" => "Khu vui chơi trẻ em"}
+        ],
+        "id" => "2",
+        "name" => "Công Viên"
+      },
+      %{
+        "children" => [
+          %{"id" => "3-1", "name" => "Đảo/bán đảo"},
+          %{"id" => "3-2", "name" => "Tour đi thuyền"},
+          %{"id" => "3-3", "name" => "Đài quan sát"},
+          %{"id" => "3-4", "name" => "Cầu"},
+          %{"id" => "3-5", "name" => "Đài phun nước"},
+          %{"id" => "3-6", "name" => "Địa điểm nổi bật"},
+          %{"id" => "3-7", "name" => "Lâu đài"},
+          %{"id" => "3-8", "name" => "Cung điện"},
+          %{"id" => "3-9", "name" => "Nhà của danh nhân"},
+          %{"id" => "3-10", "name" => "Sa mạc"},
+          %{"id" => "3-11", "name" => "Cánh đồng hoa"}
+
+        ],
+        "id" => "3",
+        "name" => "Kiến Trúc & Danh Thắng"
+      },
+      %{
+        "children" => [
+          %{"id" => "4-1", "name" => "Bãi biển"},
+          %{"id" => "4-2", "name" => "Thiên nhiên"},
+          %{"id" => "4-3", "name" => "Núi"},
+          %{"id" => "4-4", "name" => "Suối nước nóng"},
+          %{"id" => "4-5", "name" => "Hồ"},
+          %{"id" => "4-6", "name" => "Rừng"},
+          %{"id" => "4-7", "name" => "Địa điểm nổi bật"},
+          %{"id" => "4-8", "name" => "Eo biển/vịnh hẹp"},
+          %{
+            "id" => "4-9",
+            "name" => "Di sản thế giới UNESCO - Di sản thiên nhiên"
+          },
+          %{"id" => "4-10", "name" => "Thác nước"}
+        ],
+        "id" => "4",
+        "name" => "Thiên Nhiên"
+      },
+      %{
+        "children" => [
+          %{"id" => "5-1", "name" => "Di tích lịch sử"},
+          %{"id" => "5-2", "name" => "Thành cổ/cổ trấn"},
+          %{"id" => "5-3", "name" => "Địa điểm quân sự"},
+          %{
+            "id" => "5-4",
+            "name" => "Di sản thế giới UNESCO - Di sản văn hóa"
+          },
+          %{
+            "id" => "5-5",
+            "name" => "Di sản thế giới UNESCO - Di sản thiên nhiên"
+          }
+        ],
+        "id" => "5",
+        "name" => "Di Tích Lịch Sử"
+      }
+    ]
+
+    categories_string = categories
+    |> Enum.map(fn x -> x["children"] end)
+    |> List.flatten
+    
+
+    from(
+      d in Destination,
+      where: not is_nil(d.categories),
+      select: d
+    )
+    |> Repo.all()
+    |> Enum.map(fn d -> 
+      categories = d.categories || []
+      categories_keys = 
+        Enum.map(categories, fn c ->
+          Enum.find(categories_string, fn cs -> 
+            String.downcase(c) == String.downcase(cs["name"])
+          end)
+          |> case do
+            nil -> nil
+            cs -> cs["id"]
+          end
+
+        end)
+        |> Enum.filter(fn x -> x != nil end)
+
+      Ecto.Changeset.change(d, %{category_keys: categories_keys})
+      |> Repo.update!
+    end)
   end
 
   def get_places_from_api() do
@@ -134,10 +252,10 @@ defmodule Manage do
   def get_all_destination() do
     from(
       c in CityInfo,
-      select: c.id
+      select: c
     )
     |> Repo.all()
-    |> Enum.map(fn id -> get_destination_by_city_id(id) end)
+    |> Enum.map(fn c -> get_destination_by_city_id(c) end)
   end
 
   def get_all_hotels do
@@ -149,7 +267,7 @@ defmodule Manage do
     |> Enum.map(fn id -> get_hotel_by_city_id(id) end)
   end
 
-  def get_destination_by_city_id(id, idx \\ 1) do
+  def get_destination_by_city_id(c, idx \\ 1) do
     data = %{
       "head" => %{
         "extension" => [
@@ -160,13 +278,15 @@ defmodule Manage do
         "cid" => "1710425553277.8a25M5Eprc2q"
       },
       "scene" => "gsDestination",
-      "districtId" => id,
+      "districtId" => c.id,
       "index" => idx,
       "count" => 20,
       "sortType" => 1,
       "returnModuleType" => "product",
       "filter" => %{
-        "filterItems" => [],
+        "filterItems" => [
+          "4-#{c.id}"
+        ],
         "coordinateFilter" => %{
           "coordinateType" => "wgs84",
           "latitude" => 0,
@@ -191,18 +311,41 @@ defmodule Manage do
        } ->
         Enum.map(attraction_list, fn %{"showType" => type, "card" => data} -> 
           Repo.transaction(fn -> 
-            destination = Repo.get_by(Destination, %{destination_id: to_string(data["poiId"]), city_id: id})
-            if destination do
-              extra_info = Map.put(destination.extra_info, "detail_url", data["detailUrl"])
-              Ecto.Changeset.change(destination, %{extra_info: extra_info})
-              |> Repo.update!
-            end
+            # destination = Repo.get_by(Destination, %{destination_id: to_string(data["poiId"]), city_id: id})
+            # if destination do
+            #   extra_info = Map.put(destination.extra_info, "detail_url", data["detailUrl"])
+            #   Ecto.Changeset.change(destination, %{extra_info: extra_info})
+            #   |> Repo.update!
+            # end
+
+            destination = %{
+              destination_id: to_string(data["poiId"]),
+              city_id: to_string(c.id),
+              name: data["poiName"],
+              e_name: data["poiEName"],
+              subtitle_name: data["poiSubtitleName"],
+              cover_image_url: data["coverImageUrl"],
+              location: data["location"],
+              price_info: data["priceInfo"],
+              hot_score: Float.parse((data["hotScore"] || "0,0") |> String.replace(",", ".")) |> elem(0),
+              distance_str: data["distanceStr"],
+              coordinates: data["coordinate"],
+              extra_info: %{
+                "detail_url" => data["detailUrl"],
+                "open_status" => data["openStatus"],
+              },
+              categories: data["tagNameList"]
+            }
+
+            struct(Destination, destination)
+            |> Repo.insert!
+
           end)
         end)
-        
+      _ -> :ignore
     end
 
-    if idx <= 5, do: get_destination_by_city_id(id, idx + 1)
+    if idx <= 5, do: get_destination_by_city_id(c, idx + 1)
     
   end
 

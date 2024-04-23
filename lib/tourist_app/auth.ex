@@ -10,7 +10,6 @@ defmodule TouristApp.Auth do
   def call(conn, _) do
     token = Plug.Conn.get_req_header(conn, "authorization") |> IO.inspect()
     TouristApp.Guardian.decode_and_verify(Enum.at(token, 0))
-    |> IO.inspect()
     |> case do
       {:ok, %{"sub" => user_id}} ->
         conn

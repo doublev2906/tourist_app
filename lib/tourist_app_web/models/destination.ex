@@ -1,6 +1,6 @@
 defmodule TouristApp.Destination do
 
-  alias TouristApp.{Repo, CityInfo}
+  alias TouristApp.{Repo, CityInfo, Tools}
 
   use Ecto.Schema
 
@@ -21,7 +21,9 @@ defmodule TouristApp.Destination do
     field :hot_score, :float
     field :distance_str, :string
     field :city_id, :string
-
+    field :categories, {:array, :string}
+    field :category_keys, {:array, :string}, default: []
+    
     timestamps()
   end
 
@@ -99,5 +101,14 @@ defmodule TouristApp.Destination do
       limit: ^limit,
       offset: ^offset
     )|> Repo.all
+  end
+
+  def get_destinations(ids) when is_list(ids) do
+    from(
+      d in __MODULE__,
+      where: d.id in ^ids
+    ) 
+    |> Repo.all()
+    |> Enum.map(&(Tools.schema_to_map(&1)))    
   end
 end
