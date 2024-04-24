@@ -22,6 +22,7 @@ defmodule TouristAppWeb.Router do
     scope "/user" do
       post "/login", UserController, :login
       post "/sign_up", UserController, :sign_up
+      post "/favorite_destination", UserController, :favorite_destination
     end
 
     scope "/home" do
@@ -32,6 +33,7 @@ defmodule TouristAppWeb.Router do
 
     scope "/city" do
       get "/get_list_city", CityController, :get_list_city
+      get "/all_city", CityController, :get_all_city
       get "/:city_id", CityController, :get_city_detail
     end
 
@@ -48,6 +50,7 @@ defmodule TouristAppWeb.Router do
       scope "/detail" do
         get "/:id", DestinationController, :index
       end
+      post "/review", DestinationController, :add_destination_review
       get "/get_list_destination", DestinationController, :get_list_destination
     end
   end

@@ -45,6 +45,7 @@ defmodule TouristApp.TripApi do
                       }
                     } ->
                       moduleList
+                      |> IO.inspect()
                       |> Enum.filter(&(&1["type"] == 27))
                       |> Enum.at(0)
                   end

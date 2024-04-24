@@ -1,10 +1,11 @@
 defmodule TouristApp.Review do
-  alias TouristApp.{Repo, User}
+  alias TouristApp.{Repo, User, Review}
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query
 
   @primary_key {:id, :binary_id, autogenerate: true}
+  @foreign_key_type :binary_id
   schema "reviews" do
     field :place_id, :string
     field :content, :string
@@ -47,5 +48,10 @@ defmodule TouristApp.Review do
       }
     ) 
     |> Repo.all
+  end
+
+  def insert(review) do
+    struct(Review, review)
+    |> Repo.insert()
   end
 end

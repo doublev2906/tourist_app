@@ -730,6 +730,21 @@ defmodule Manage do
     
   end
 
+  def testlala do
+    a = %{
+      type: "destination",
+      user_id: "f8a02f32-516f-459b-9c76-c7e255a45b4d",
+      destination_id: "71f2dd55-3f79-420d-9285-ea0a2ef565b9",
+      rating: 3.0,
+      content: "lalalala",
+      images: []
+    }
+
+
+    struct(Review, a)
+    |> Repo.insert!
+  end
+
   def get_reviews_of_hanoi() do
     from(
       d in Destination,

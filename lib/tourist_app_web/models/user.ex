@@ -1,6 +1,6 @@
 defmodule TouristApp.User do
   use TouristAppWeb, :model
-  import TouristApp.{Repo}
+  alias TouristApp.{Repo}
 
   import Ecto.Query
 
@@ -10,6 +10,7 @@ defmodule TouristApp.User do
     field :email,               :string
     field :password_hash,       :string
     field :phone_number,        :string
+    field :favorite_destinations, {:array, :string}, default: []
 
     timestamps()
   end
@@ -20,6 +21,7 @@ defmodule TouristApp.User do
       name: user.name,
       email: user.email,
       phone_number: user.phone_number,
+      favorite_destinations: user.favorite_destinations
     }
   end
 
@@ -62,5 +64,11 @@ defmodule TouristApp.User do
     {:ok, refresh_token, _} = TouristApp.Guardian.encode_and_sign(user, %{access_token: access_token}, [token_type: "refresh", ttl: {90, :days}])
 
     %{access_token: access_token, refresh_token: refresh_token, expired_time: access_claims["exp"]}
+  end
+
+  def update_favorite_destination(user_id, list_destinations) do
+    Repo.get_by(__MODULE__, %{id: user_id})
+    |> Ecto.Changeset.change(%{favorite_destinations: list_destinations})
+    |> Repo.update!
   end
 end

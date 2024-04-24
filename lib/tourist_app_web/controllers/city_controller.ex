@@ -32,6 +32,18 @@ defmodule TouristAppWeb.CityController do
     json conn, %{success: true, data: data}
   end
 
+  def get_all_city(conn, params) do
+    data = 
+      from(
+        c in CityInfo,
+        order_by: c.index_sort,
+      )
+      |> Repo.all()
+      |> Enum.map(&(Tools.schema_to_map(&1)))
+
+    json conn, %{success: true, data: data}
+  end
+
   def get_city_detail(conn, params) do
     city_id = params["city_id"]
 
