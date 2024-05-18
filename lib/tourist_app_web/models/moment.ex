@@ -1,9 +1,8 @@
 defmodule TouristApp.Moment do
   use TouristAppWeb, :model
 
-  alias TouristApp.{Repo, User, CityInfo, Destination}
+  alias TouristApp.{Repo, User, CityInfo, Destination, MomentUserFavorite, Tools}
   import Ecto.Query
-
   use Ecto.Schema
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -16,9 +15,12 @@ defmodule TouristApp.Moment do
     field :like_info, :map, default: %{}
     field :extra_info, :map, default: %{}
     field :city_id, :string
+    field :comment_count, :integer, default: 0
+    field :like_count, :integer, default: 0
 
     timestamps()
   end
+
 
   def map_json(json_data, destination_id) do
     data = %{
@@ -32,12 +34,18 @@ defmodule TouristApp.Moment do
     |> TouristApp.Repo.insert!
   end
 
-  def get_moments_by_destination_id(destination_id) do
-    from(
+  def get_moments_by_destination_id(destination_id, opts \\ []) do
+    offset = Keyword.get(opts, :offset, 0)
+    limit = Keyword.get(opts, :limit, 20)
+    moment_id = Keyword.get(opts, :moment_id, nil)
+    query = from(
       m in __MODULE__,
       join: u in User,
       on: m.user_id == u.id,   
       where: m.poi_id == ^destination_id,
+      order_by: [desc: m.inserted_at],
+      limit: ^limit,
+      offset: ^offset,
       select: %{
         id: m.id,
         poi_id: m.poi_id, 
@@ -46,13 +54,16 @@ defmodule TouristApp.Moment do
         imageList: m.imageList, 
         like_info: m.like_info, 
         extra_info: m.extra_info,
+        like_count: m.like_count,
+        comment_count: m.comment_count,
         from: %{
           id: u.id,
           name: u.name
         }
       }
     )
-    |> TouristApp.Repo.all()
+    query = if moment_id, do: from(m in query, where: m.id != ^moment_id), else: query
+    TouristApp.Repo.all(query)
   end
 
   def insert_moment_city_id() do
@@ -103,5 +114,25 @@ defmodule TouristApp.Moment do
       }
     ) 
     |> Repo.all()
+  end
+
+  def insert(moment) do
+    struct(__MODULE__, moment)
+    |> Repo.insert!
+  end
+
+
+  def get_moment_of_user(user_id) do
+    IO.inspect(user_id)
+    from(
+      m in __MODULE__,
+      join: d in Destination,
+      on: m.poi_id == d.destination_id,
+      where: m.user_id == ^user_id,
+      order_by: [desc: m.inserted_at],
+      select: %{data: m, destination: d}
+    )
+    |> Repo.all()
+    # |> IO.inspect()
   end
 end

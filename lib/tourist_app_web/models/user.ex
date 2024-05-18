@@ -11,6 +11,7 @@ defmodule TouristApp.User do
     field :password_hash,       :string
     field :phone_number,        :string
     field :favorite_destinations, {:array, :string}, default: []
+    field :avatar_url,          :string
 
     timestamps()
   end
@@ -21,7 +22,8 @@ defmodule TouristApp.User do
       name: user.name,
       email: user.email,
       phone_number: user.phone_number,
-      favorite_destinations: user.favorite_destinations
+      favorite_destinations: user.favorite_destinations,
+      avatar_url: user.avatar_url
     }
   end
 

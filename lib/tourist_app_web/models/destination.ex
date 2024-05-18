@@ -49,6 +49,7 @@ defmodule TouristApp.Destination do
     offset = params["offset"] || 0
     limit = params["limit"] || 10
     city_ids = params["city_ids"]
+    category_keys = params["category_keys"]
     search = params["search"]
     lat = params["lat"] || 21.040085
     lon = params["long"] || 105.7814983
@@ -66,12 +67,13 @@ defmodule TouristApp.Destination do
         distance_str: d.distance_str, 
         extra_info: d.extra_info,
         hot_score: d.hot_score,
+        categories: d.categories,
         distance: fragment("calculate_distance((sd0.coordinates -> 'latitude')::numeric, (sd0.coordinates -> 'longitude')::numeric, ?, ?, 'K')::float8", ^lat, ^lon)
       }
     )
 
     order_by = if params["order_by"] == "distance" do
-      [desc: :distance]
+      [asc: :distance]
     else
       [desc: :hot_score]
     end
@@ -81,6 +83,16 @@ defmodule TouristApp.Destination do
       from(
         d in query,
         where: d.city_id in ^city_ids
+      )
+    else
+      query
+    end
+
+    query = if category_keys do
+      category_keys = String.split(category_keys, ",")
+      from(
+        d in query,
+        where: fragment("? && ?::VARCHAR[]", d.category_keys, ^category_keys)
       )
     else
       query
@@ -106,9 +118,20 @@ defmodule TouristApp.Destination do
   def get_destinations(ids) when is_list(ids) do
     from(
       d in __MODULE__,
-      where: d.id in ^ids
+      join: c in CityInfo, on: d.city_id == c.id,
+      where: d.id in ^ids,
+      select: %{ 
+        id: d.id, 
+        name: d.name,
+        cover_image_url: d.cover_image_url, 
+        city_id: d.city_id, 
+        city_name: c.name,
+        distance_str: d.distance_str, 
+        extra_info: d.extra_info,
+        hot_score: d.hot_score,
+        categories: d.categories,
+      }
     ) 
-    |> Repo.all()
-    |> Enum.map(&(Tools.schema_to_map(&1)))    
+    |> Repo.all() 
   end
 end

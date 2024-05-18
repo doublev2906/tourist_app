@@ -23,6 +23,19 @@ defmodule TouristAppWeb.Router do
       post "/login", UserController, :login
       post "/sign_up", UserController, :sign_up
       post "/favorite_destination", UserController, :favorite_destination
+      get "/get_favorite_moments", UserController, :get_favorite_moments
+      post "/favorite_moment", UserController, :favorite_moment
+      post "/update_user_info", UserController, :update_user_info
+    end
+
+    scope "/moments" do
+      get "/", MomentController, :index
+      post "/create", MomentController, :create
+      get "/user_moments", MomentController, :get_user_moments
+      scope "/:id" do
+        get "/", MomentController, :show
+        post "/comment", MomentController, :create_comment
+      end
     end
 
     scope "/home" do
@@ -52,6 +65,7 @@ defmodule TouristAppWeb.Router do
       end
       post "/review", DestinationController, :add_destination_review
       get "/get_list_destination", DestinationController, :get_list_destination
+      get "/get_destination_of_user", DestinationController, :get_destination_of_user
     end
   end
 

@@ -1,7 +1,8 @@
 defmodule TouristAppWeb.DestinationController do
   use TouristAppWeb, :controller
-  alias TouristApp.{Destination, Repo, TripApi, Review, Moment, Tools}
-  plug TouristApp.Auth when action in [:add_destination_review]
+  alias TouristApp.{Destination, Repo, TripApi, Review, Moment, Tools, User}
+  import Ecto.Query
+  plug TouristApp.Auth when action in [:add_destination_review, :get_destination_of_user]
 
   def index(conn, params) do
     destination_id = params["id"]
@@ -24,6 +25,12 @@ defmodule TouristAppWeb.DestinationController do
     Review.insert(Tools.to_atom_keys_map(params))
 
     json conn, %{success: true}
+  end
+
+  def get_destination_of_user(conn, _) do
+    user = Repo.get_by(User, %{id: conn.assigns.user_id})
+    destinations = Destination.get_destinations(user.favorite_destinations)
+    json conn, %{success: true, data: destinations}
   end
 
   

@@ -1,6 +1,6 @@
 defmodule Manage do
   
-  alias TouristApp.{Tools, Repo, Place, CityInfo, Destination, Hotel, Restaurant, Moment, Review, TripApi}
+  alias TouristApp.{Tools, Repo, Place, CityInfo, Destination, Hotel, Restaurant, Moment, Review, TripApi, User}
 
   import Ecto.Query
 
@@ -140,6 +140,28 @@ defmodule Manage do
 
       Ecto.Changeset.change(d, %{category_keys: categories_keys})
       |> Repo.update!
+    end)
+  end
+  def lala do
+    limit = 10
+    offset = 0
+    query = from(
+      m in Moment,
+      join: d in Destination,
+      on: m.poi_id == d.destination_id,
+      order_by: [desc: m.inserted_at],
+      limit: ^limit,
+      offset: ^offset,
+      select: %{data: m, destination: d}
+    )
+    Repo.all(query)
+    |> Enum.map(fn %{data: m, destination: d} -> 
+      user = Repo.get_by(User, %{id: m.user_id})
+      %{
+        data: Tools.schema_to_map(m),
+        destination: Tools.schema_to_map(d),
+        user: Tools.schema_to_map(user)
+      }
     end)
   end
 
