@@ -56,9 +56,11 @@ defmodule TouristApp.Moment do
         extra_info: m.extra_info,
         like_count: m.like_count,
         comment_count: m.comment_count,
+        inserted_at: m.inserted_at,
         from: %{
           id: u.id,
-          name: u.name
+          name: u.name,
+          avatar_url: u.avatar_url
         }
       }
     )
@@ -123,7 +125,6 @@ defmodule TouristApp.Moment do
 
 
   def get_moment_of_user(user_id) do
-    IO.inspect(user_id)
     from(
       m in __MODULE__,
       join: d in Destination,

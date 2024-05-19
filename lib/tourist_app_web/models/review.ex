@@ -43,7 +43,8 @@ defmodule TouristApp.Review do
         inserted_at: r.inserted_at, 
         from: %{
           id: u.id,
-          name: u.name
+          name: u.name,
+          avatar_url: u.avatar_url
         }
       }
     ) 
@@ -53,5 +54,13 @@ defmodule TouristApp.Review do
   def insert(review) do
     struct(Review, review)
     |> Repo.insert()
+  end
+
+  def count_review_by_place_id(place_id, type) do
+    query = from r in __MODULE__,
+    where: r.place_id == ^place_id and r.type == ^type,
+    select: %{total_review: count(r.id),avg_rating: avg(r.rating)}
+
+    Repo.one(query)
   end
 end

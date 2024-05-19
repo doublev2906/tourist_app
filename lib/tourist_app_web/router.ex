@@ -35,6 +35,7 @@ defmodule TouristAppWeb.Router do
       scope "/:id" do
         get "/", MomentController, :show
         post "/comment", MomentController, :create_comment
+        get "/comment", MomentController, :load_comment_of_moment
       end
     end
 

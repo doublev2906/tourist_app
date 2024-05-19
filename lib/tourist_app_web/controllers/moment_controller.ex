@@ -77,4 +77,13 @@ defmodule TouristAppWeb.MomentController do
       end)
     json conn, %{success: true, data: data}
   end
+
+
+  def load_comment_of_moment(conn, params) do
+    moment_id = params["id"]
+
+    moment_comments = MomentComment.get_data(%{"moment_id" => moment_id, "limit" => 100, "offset" => 0})
+
+    json conn, %{success: true, data: moment_comments}
+  end
 end

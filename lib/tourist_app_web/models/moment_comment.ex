@@ -43,7 +43,8 @@ defmodule TouristApp.MomentComment do
         inserted_at: m.inserted_at,
         user: %{
           id: u.id,
-          name: u.name          
+          name: u.name,
+          avatar_url: u.avatar_url          
         }
       }
     )
@@ -55,7 +56,6 @@ defmodule TouristApp.MomentComment do
     end
 
     Repo.all(query)
-    |> IO.inspect()
   end
 
   def insert(params) do

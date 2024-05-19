@@ -68,6 +68,7 @@ defmodule TouristApp.Destination do
         extra_info: d.extra_info,
         hot_score: d.hot_score,
         categories: d.categories,
+        coordinates: d.coordinates,
         distance: fragment("calculate_distance((sd0.coordinates -> 'latitude')::numeric, (sd0.coordinates -> 'longitude')::numeric, ?, ?, 'K')::float8", ^lat, ^lon)
       }
     )
@@ -99,9 +100,10 @@ defmodule TouristApp.Destination do
     end
 
     query = if search do
+      search = "%#{String.downcase(search)}%"
       from(
         d in query,
-        where: ilike(d.name, ^"%#{search}%")
+        where: like(fragment("LOWER(?)", d.name), ^search)
       )
     else
       query
@@ -130,6 +132,7 @@ defmodule TouristApp.Destination do
         extra_info: d.extra_info,
         hot_score: d.hot_score,
         categories: d.categories,
+        coordinates: d.coordinates
       }
     ) 
     |> Repo.all() 

@@ -3,10 +3,23 @@ defmodule TouristAppWeb.TripController do
 
   plug TouristApp.Auth
 
-  alias TouristApp.{Trip, Tools, Destination}
+  alias TouristApp.{Trip, Tools, Destination, Repo}
 
   def index(conn, params) do
     trips = Trip.get_trips(%{"user_id" => conn.assigns[:user_id]}) |> Enum.map(&(Tools.schema_to_map(&1)))
+    trips = Enum.map(trips,fn trip -> 
+      list_destinations = trip.list_destinations
+      cover_image = 
+        if length(list_destinations) > 0 do
+          id = Enum.at(list_destinations, 0)
+          destination = Repo.get_by(Destination, %{id: id})
+          destination.cover_image_url
+        else
+          nil
+        end
+
+      Map.put(trip, "cover_image", cover_image)
+    end)
     json conn, %{success: true, data: trips}
   end
 
@@ -28,7 +41,6 @@ defmodule TouristAppWeb.TripController do
     |> case do
       nil -> json conn, %{success: false, message: "Trip not found"}
       trip -> 
-        IO.inspect(trip.list_destinations)
         list_destinations = Destination.get_destinations(trip.list_destinations || [])
         json conn, %{success: true, trip: Tools.schema_to_map(trip), list_destinations: list_destinations}
 
